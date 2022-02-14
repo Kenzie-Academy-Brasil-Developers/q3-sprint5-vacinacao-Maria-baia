@@ -7,6 +7,10 @@ def create_vaccine_card():
     try:
         data = request.get_json()
 
+        for value in data.values():
+            if type(value) != str:
+                return jsonify({"msg": "fields must be strings"}), 400
+
         new_data = {
                 "cpf": data["cpf"].title(),
                 "name": data["name"].title(), 
@@ -16,16 +20,11 @@ def create_vaccine_card():
                 "second_shot_date": datetime.today() + timedelta(days=+90)
             }
 
-        for key, value in data.items():
-            if type(value) != str:
-                return jsonify({"msg": "fields must be strings"}), 400
-            if key != "cpf" and key != "name" and key != "vaccine_name" and key != "health_unit_name":
-                return jsonify({"msg": "wrong fields"}), 400
 
         if len(data["cpf"]) == 11 and data["cpf"].isnumeric():
             new_data["cpf"] = data["cpf"]
         else:
-            return jsonify({"msg": "CPF is invalid"}), 400
+            return jsonify({"msg": "CPF must constain 11 numeric characters"}), 400
 
         new_vaccine_card = VaccineCardModel(**new_data)
 
@@ -35,7 +34,7 @@ def create_vaccine_card():
         return jsonify(new_vaccine_card), 201
     
     except KeyError:
-        return jsonify({"msg": "missing fields"}), 400
+        return jsonify({"msg": "The request must have the fields cpf, name, vaccine_name and health_unit_name"}), 400
     
     except IntegrityError:
         return jsonify({"msg": "CPF has already been registered"}), 409
